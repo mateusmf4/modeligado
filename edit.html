@@ -79,6 +79,7 @@
         nodeName.push(...missingClasses)
         errorDiv.textContent = "No errors detected..."
       } catch (err) {
+        console.error(err);
         errorDiv.textContent = err.message
         return;
       }

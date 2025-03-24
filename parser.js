@@ -44,13 +44,14 @@ class State {
     this.className = name
   }
 
-  addClassRelation (relatedClass, relation, inverse) {
+  addClassRelation (relatedClass, relation, inverse, cardinality) {
     this._check('CLASS')
     this.relates.add(relatedClass)
+    let [cardFrom, cardTo] = cardinality ?? [];
     if (inverse) {
-      this.relations.push({ to: this.context.name, from: relatedClass, relationship: relation })
+      this.relations.push({ to: this.context.name, from: relatedClass, relationship: relation, cardFrom, cardTo })
     } else {
-      this.relations.push({ from: this.context.name, to: relatedClass, relationship: relation })
+      this.relations.push({ from: this.context.name, to: relatedClass, relationship: relation, cardFrom: cardTo, cardTo: cardFrom })
     }
   }
 
@@ -131,11 +132,11 @@ class Extractor {
     return this.conv[vis]
   }
 
-  _prepareRelation (relation, types) {
+  _prepareRelation (relation, types, cardinality) {
     if (!Object.prototype.hasOwnProperty.call(this.relations, relation)) {
       throw new ParseError(this.lineNumber, 'Unknown relation: ' + relation)
     }
-    return { relation: this.relations[relation][0], types: types, inverse: this.relations[relation][1] }
+    return { relation: this.relations[relation][0], types: types, inverse: this.relations[relation][1], cardinality }
   }
 
   removeComment (line) {
@@ -143,9 +144,14 @@ class Extractor {
   }
 
   extractRelation (line) {
+    let [rawLine, card] = line.split('|')
+    line = rawLine
+    if (card) {
+      card = card.trim().split(' ').map(x => x.trim())
+    }
     const relation = line.split(' ')[0].trim()
     const types = line.substring(relation.length + 1, line.length).split(',').map(x => x.trim())
-    return this._prepareRelation(relation, types)
+    return this._prepareRelation(relation, types, card)
   }
 
   _correctModifier (line) {
@@ -360,7 +366,7 @@ class Parser {
     } else if (state.isClass()) {
       const relationships = extractor.extractRelation(line)
       for (const class_ of relationships.types) {
-        state.addClassRelation(class_, relationships.relation, relationships.inverse)
+        state.addClassRelation(class_, relationships.relation, relationships.inverse, relationships.cardinality)
       }
     } else if (state.isAttr()) {
       state.addAttr({ className: state.className, ...extractor.extractAttr(line) })

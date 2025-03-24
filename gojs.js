@@ -335,7 +335,13 @@ function init (div, clickHistory) {
           new go.Binding('fromArrow', 'relationship', convertFromArrow)),
         $(go.Shape, { scale: 1.3 },
           new go.Binding('toArrow', 'relationship', convertToArrow),
-          new go.Binding('fill', 'relationship', fillToArrow))
+          new go.Binding('fill', 'relationship', fillToArrow)),
+        $(go.TextBlock, { segmentIndex: -1, segmentFraction: 0.5, segmentOffset: new go.Point(NaN, NaN) },
+          new go.Binding("text", "cardFrom")
+        ),
+        $(go.TextBlock, { segmentIndex: 0, segmentFraction: 0.5, segmentOffset: new go.Point(NaN, NaN) },
+          new go.Binding("text", "cardTo")
+        ),
       )
   return myDiagram
 }
